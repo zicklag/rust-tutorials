@@ -1,6 +1,6 @@
 # Rust Plugins
 
-This is a guide for setting your rust application up with Rust plugins that can be loaded dynamically at runtime. Additionally, this plugin setup allows plugins to make calls to the application's public API so that it can make use of the same data structures and utilities for extending the application.
+This is a guide for setting your Rust application up with Rust plugins that can be loaded dynamically at runtime. Additionally, this plugin setup allows plugins to make calls to the application's public API so that it can make use of the same data structures and utilities for extending the application.
 
 This is a quick, somewhat unpolished tutorial that I figured I would make as I explored the subject for the first time myself. Hopefully it will help somebody else who might want to do the same thing!
 
@@ -260,7 +260,7 @@ What we are going to focus on next is making our plugin API more powerful so tha
 
 ## Improving the Plugin API ( And Our App )
 
-Now that we have basics of plugin loading, lets make our app do something. We're going to setup a simple app that will infinitely prompt for a command, and respond to the users input. The only command that comes with the app will be the `exit` command that lets the user exit the program. Otherwise, all other commands will be provided by plugins.
+Now that we have basics of plugin loading, lets make our app do something. We're going to setup a simple app that will infinitely prompt for a command, and respond to the user's input. The only command that comes with the app will be the `exit` command that lets the user exit the program. Otherwise, all other commands will be provided by plugins.
 
 Let's get that loop going without plugins first:
 
