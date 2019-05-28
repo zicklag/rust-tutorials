@@ -262,4 +262,152 @@ What we are going to focus on next is making our plugin API more powerful so tha
 
 Now that we have basics of plugin loading, lets make our app do something. We're going to setup a simple app that will infinitely prompt for a command, and respond to the users input. The only command that comes with the app will be the `exit` command that lets the user exit the program. Otherwise, all other commands will be provided by plugins.
 
-TODO
+Let's get that loop going without plugins first:
+
+**src/lib.rs:**
+
+```rust
+// ...
+pub fn run() {
+    println!("Starting App");
+
+    // Comment this out for now
+    // let plugin_api_wrapper: Container<PluginApi> = unsafe { Container::load("plugins/libplugin1.so") }.unwrap();
+    // plugin_api_wrapper.run();
+
+    loop {
+        // Prompt
+        println!("Enter command:");
+
+        // Read input
+        let mut message = String::new();
+        std::io::stdin().read_line(&mut message).unwrap();
+
+        // Trim newline
+        message = message.trim().into();
+
+        // Check command
+        if message == "exit" {
+            break
+        }
+    }
+}
+// ...
+```
+
+Now we can `cargo run` our app and get our own little command prompt.
+
+Now we want to refine our plugin API a bit. Instead of using a `run` function to execute our plugins, we are going to use an `get_plugin` function which is expected to return a pointer to a struct that implements a `Plugin` trait. The `Plugin` trait will require that each plugin implement the `handle_command()` function so that it can handle commands pass to the user.
+
+Here is the full updated `app/src/lib.rs`:
+
+```rust
+#[macro_use]
+extern crate dlopen_derive;
+use dlopen::wrapper::{Container, WrapperApi};
+
+// The trait that must be implemented by plugins to allow them to handle
+// commands.
+pub trait Plugin {
+    fn handle_command(&self, command: &str);
+}
+
+#[derive(WrapperApi)]
+struct PluginApi {
+    // The plugin library must implement this function and return a raw pointer
+    // to a Plugin struct.
+    get_plugin: extern fn() -> *mut Plugin,
+}
+
+pub fn run() {
+    println!("Starting App");
+
+    // Load the plugin by name from the plugins directory
+    let plugin_api_wrapper: Container<PluginApi> = unsafe { Container::load("plugins/libplugin1.so") }.unwrap();
+    let plugin = unsafe { Box::from_raw(plugin_api_wrapper.get_plugin()) };
+
+    loop {
+        // Prompt
+        println!("Enter command:");
+
+        // Read input
+        let mut message = String::new();
+        std::io::stdin().read_line(&mut message).unwrap();
+
+        // Trim newline
+        message = message.trim().into();
+
+        // Give the plugin a chance to handle the command
+        plugin.handle_command(&message);
+
+        // Check command
+        if message == "exit" {
+            break
+        }
+    }
+}
+```
+
+And our updated `plugin1/src/lib.rs`:
+
+```rust
+extern crate app;
+
+use app::Plugin;
+
+// Our plugin implementation
+struct Plugin1;
+
+impl Plugin for Plugin1 {
+    fn handle_command(&self, command: &str) {
+        // Handle the `plugin1` command
+        if command == "plugin1" {
+            println!("Hey you triggered my 'plugin1' command!");
+
+        // Handle an `echo` command
+        } else if command.starts_with("echo ") {
+            println!("Echo-ing what you said: {}", command);
+        }
+    }
+}
+
+#[no_mangle]
+pub fn get_plugin() -> *mut Plugin {
+    println!("Running plugin1");
+
+    // Return a raw pointer to an instance of our plugin
+    Box::into_raw(Box::new(Plugin1 {}))
+}
+```
+
+Now we can:
+
+* rebuild our app
+* rebuild our plugin
+* copy the newly built `libplugin1.so` into our app's `plugins/` directory, and
+* run our app to get our mini command prompt
+
+Here is an example of the result:
+
+```txt
+Starting App
+Running plugin1
+Enter command:
+plugin1
+Hey you triggered my 'plugin1' command!
+Enter command:
+echo hello world
+Echo-ing what you said: echo hello world
+Enter command:
+exit
+```
+
+We used our plugin to provide custom commands to our command prompt!
+
+This is as far as this tutorial will take you and there is obviously a lot that could be improved. For one, you probably don't want to be loading plugins by name and you are going to want to be able to have more than one. All of that is simple to implement on top of the base that we have worked on here and I leave it up to the reader to explore how to do that if they so desire.
+
+## Closing Thoughts
+
+This is actually the first time that I have done any of this, so I'm still getting to understand how everything fits together, but hopefully this presents a good picture of how you can setup plugins in Rust.
+
+Many thanks to @Michael-F-Bryan for the plugin section of his [Rust FFI Guide](https://michael-f-bryan.github.io/rust-ffi-guide/). I wouldn't have figure out how to do this without that. I may have missed something or given incorrect instructions somewhere in the tutorial so open an issue if you have any problems with it. :smiley:
