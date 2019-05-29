@@ -1,4 +1,0 @@
-target
-plugins/*.so
-plugins/*.dll
-plugins/*.dylib
