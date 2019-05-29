@@ -72,7 +72,7 @@
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-            <ol class="chapter"><li><a href="../index.html" class="active"><strong aria-hidden="true">1.</strong> Overview</a></li><li><a href="rust-plugins.html"><strong aria-hidden="true">2.</strong> Rust Plugins</a></li></ol>
+            <ol class="chapter"><li class="affix"><a href="../../index.html">Overview</a></li><li><a href="rust-plugins.html"><strong aria-hidden="true">1.</strong> Rust Plugins</a></li></ol>
         </nav>
 
         <div id="page-wrapper" class="page-wrapper">
@@ -136,7 +136,11 @@
 
                 <div id="content" class="content">
                     <main>
-                        <a class="header" href="#overview" id="overview"><h1>Overview</h1></a>
+                        <a class="header" href="#rust-tutorials" id="rust-tutorials"><h1>Rust Tutorials</h1></a>
+<p>These are some miscellaneous <a href="http://rust-lang.org/">Rust</a> tutorials put together as I learn them. Hopefully they can help other people who might want to do the same things.</p>
+<ul>
+<li><a href="./rust-plugins.html">Rust Plugins</a> - Learn how to setup dynamically loadable plugins for your Rust app</li>
+</ul>
 
                     </main>
 
@@ -144,10 +148,6 @@
                         <!-- Mobile navigation buttons -->
                         
 
-                        
-                            <a rel="next" href="rust-plugins.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
-                            </a>
                         
 
                         <div style="clear: both"></div>
@@ -159,29 +159,10 @@
                 
 
                 
-                    <a href="rust-plugins.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
-                    </a>
-                
             </nav>
 
         </div>
 
-        
-        <!-- Livereload script (if served using the cli tool) -->
-        <script type="text/javascript">
-            var socket = new WebSocket("ws://localhost:3001");
-            socket.onmessage = function (event) {
-                if (event.data === "reload") {
-                    socket.close();
-                    location.reload(true); // force reload from server (not from cache)
-                }
-            };
-
-            window.onbeforeunload = function() {
-                socket.close();
-            }
-        </script>
         
 
         

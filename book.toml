@@ -1,5 +1,0 @@
-[book]
-authors = ["Zicklag"]
-multilingual = false
-src = "src"
-title = "Rust Tutorials"
