@@ -248,8 +248,8 @@ pub fn run() {
     // Add our app's build directory to the lib search path.
     println!(&quot;cargo:rustc-link-search=../app/target/debug&quot;);
     // Add the app's dependency directory to the lib search path.
-    // This is may be required if the app depends on any external crates
-    // like the `dlopen_derive` crate that we add later.
+    // This is may be required if the app depends on any external &quot;derive&quot;
+    // crates like the `dlopen_derive` crate that we add later.
     println!(&quot;cargo:rustc-link-search=../app/target/debug/deps&quot;);
     // Link to the `app` crate library. This tells cargo to actually link
     // to the `app` crate that we include using `extern crate app;`.
