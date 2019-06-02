@@ -181,6 +181,9 @@ Starting App
 crate-type = [&quot;dylib&quot;, &quot;rlib&quot;]
 </code></pre>
 <p>In the above config we tell cargo to compile a <code>dylib</code> or dynamic library <em>and</em> an <code>rlib</code> or rust library. The <code>dylib</code> will be a <code>.so</code> shared library that will contain the machine code for our app's library and is needed when running the app and plugins. The <code>rlib</code> will make a <code>.rlib</code> file that provides rust with extra metadata that allows it to link plugins to the app's library at compile time. Without the <code>rlib</code> build of the library, our plugins would not be able to tell which functions are defined in the library without us providing the entire source-code for the app. The <code>rlib</code> is almost like a kind of header file that gives rust the info it needs to link to the crate without needing source code ( I think ).</p>
+<blockquote>
+<p><strong>Note:</strong> There is another crate type called <code>cdylib</code> that can be used instead of <code>dylib</code>, but it behaves somewhat differently. It may be a better solution as it is not dependent on the Rust compiler version being exactly the same for the app and the plugins. I am trying to understand the full differences and have opened up a <a href="https://users.rust-lang.org/t/what-is-the-difference-between-dylib-and-cdylib/28847?u=zicklag">forum topic</a> on the Rust user forum to discuss it.</p>
+</blockquote>
 <p>Additionally we need to tell cargo to add some flags to the its rust compiler calls. These settings go in a <code>.cargo/config</code> file:</p>
 <pre><code class="language-toml">[build]
 rustflags = [&quot;-C&quot;, &quot;prefer-dynamic&quot;, &quot;-C&quot;, &quot;rpath&quot;]
