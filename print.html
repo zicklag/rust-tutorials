@@ -493,26 +493,27 @@ exit
 <ul>
 <li>To build a <code>dylib</code>, you probably need the <code>-C prefer-dynamic</code> rustflag set so that it will not attempt to statically link the standard library.</li>
 <li>Within the same Rust version, you can dynamically link to a Rust <code>dylib</code> from a Rust crate <strong>without</strong> having to use extern functions or blocks because it will go over the Rust ABI.</li>
+<li><code>dylib</code>'s will <strong>not</strong> strip out any unused functions when built. Even if none of the functions in the library are explicitly expose or used in the crate, all of the functions will still be included in the generated library.</li>
 </ul>
 <a class="header" href="#proposal-for-creating-a-stable-rust-dynamic-linking-strategy" id="proposal-for-creating-a-stable-rust-dynamic-linking-strategy"><h2>Proposal for Creating a Stable Rust Dynamic Linking Strategy</h2></a>
 <blockquote>
 <p><strong>Note:</strong> This is just a draft for my thoughts about a way to make dynamic linking more stable and usable in Rust.</p>
 </blockquote>
-<p>The largest problem with dynamically linking Rust libraries, as far as I understand it, is that there is no stable ABI for Rust right now and, according to some, there may never be. Still dynamic linking is very useful in my use-case of creating a Rust plugin system, where plugins have access to the applications full Rust interface.</p>
+<p>The largest problem with dynamically linking Rust libraries, as far as I understand it, is that there is no stable ABI for Rust right now and, according to some, there may never be. Still, dynamic linking can be very useful, like in my use-case of creating a Rust plugin system, where plugins have access to the application's full Rust interface.</p>
 <blockquote>
-<p>My proposal is to provide a way to tell the Rust compiler to automatically expose all public Rust interfaces in a crate over the C ABI and also provide a way to import the external crate over the C ABI.</p>
+<p>My proposal is to provide a way to tell the Rust compiler to automatically expose all public Rust interfaces in a crate over the C ABI and also provide a way to import the external crate over the C ABI into another Rust crate.</p>
 </blockquote>
 <p>The problem with using <code>dylib</code> for creating Rust dynamic libraries is that you cannot link to them from Rust crates that are not built using the <strong>exact</strong> same version of the Rust compiler. The problem with using <code>cdylib</code> is that it only exposes the items that are explicitly exposed using the <code>extern</code> keyword. While this makes sense for building C/C++ interfaces, it does not make sense for trying to link a full Rust library to another rust library as that would require you to manually create extern functions and blocks for the entire Rust interface you want to link to.</p>
 <p>If there was a way to build a Rust library with a C ABI and import it over that ABI, the library could be compatible with different rust versions without having to stabilize Rust's own ABI. I'm imagining that this would have something like the following changes:</p>
 <ul>
-<li>There is now a new <code>rcdylib</code> ( Rust C Dylib ) crate type that will cause Rust to build a shared library that exposes all of the Rust functions over the C ABI.</li>
+<li>There is now a new <code>rcdylib</code> ( Rust C Dylib?, probably a better name for that ) crate type that will cause Rust to build a shared library that exposes all of the Rust functions over the C ABI.</li>
 <li>There is now a new way to import external crates: <code>extern &quot;C&quot; crate crate_name;</code> Including a crate into another crate like this will cause it to use the C ABI to call any functions on that imported crate.</li>
 </ul>
 <a class="header" href="#caveats" id="caveats"><h3>Caveats</h3></a>
 <a class="header" href="#derive-macros" id="derive-macros"><h4>Derive Macros</h4></a>
 <p>In order to facilitate dynamically linking to Rust libraries that provide derive macros, it might be required that derive plugins be compiled as <code>rcdylib</code>'s as well. Otherwise, if you are attempting to compile Rust crate A and dynamically link it to Rust crate B, and the version of Rust you are using to compile crate A is different than crate B, the rustc binary compiling crate A will not be able to successfully link to the derive macro shared libraries that were built using crate B's version of Rust.</p>
 <a class="header" href="#disclaimer" id="disclaimer"><h3>Disclaimer</h3></a>
-<p>I don't fully understand the way that Rust libraries are linked and I don't have any in-depth knowledge of the compiler. This proposal is made based on the best of the knowledge that I could obtain right now. I would like to get feedback on whether or not what I'm saying makes any sense, and whether or not this could be feasible to work into Rust.</p>
+<p>I don't fully understand the way that Rust libraries are linked and I don't have any in-depth knowledge of the compiler. This proposal is made based on the best information that I could obtain right now. I would like to get feedback on whether or not what I'm saying makes any sense, and whether or not this could be feasible to work into Rust.</p>
 <p>If there is another way to achieve what I am trying to achieve, then I would be happy to go with an alternative that doesn't require changing the Rust compiler.</p>
 
                     </main>
