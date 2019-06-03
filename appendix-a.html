@@ -175,7 +175,7 @@
 <p>The problem with using <code>dylib</code> for creating Rust dynamic libraries is that you cannot link to them from Rust crates that are not built using the <strong>exact</strong> same version of the Rust compiler. The problem with using <code>cdylib</code> is that it only exposes the items that are explicitly exposed using the <code>extern</code> keyword. While this makes sense for building C/C++ interfaces, it does not make sense for trying to link a full Rust library to another rust library as that would require you to manually create extern functions and blocks for the entire Rust interface you want to link to.</p>
 <p>If there was a way to build a Rust library with a C ABI and import it over that ABI, the library could be compatible with different rust versions without having to stabilize Rust's own ABI. I'm imagining that this would have something like the following changes:</p>
 <ul>
-<li>There is now a new <code>rcdylib</code> ( Rust C Dylib?, probably a better name for that ) crate type that will cause Rust to build a shared library that exposes all of the Rust functions over the C ABI.</li>
+<li>There is now a new <code>rcdylib</code> ( Rust C Dylib, probably a better name for that ) crate type that will cause Rust to build a shared library that exposes all of the Rust functions over the C ABI.</li>
 <li>There is now a new way to import external crates: <code>extern &quot;C&quot; crate crate_name;</code> Including a crate into another crate like this will cause it to use the C ABI to call any functions on that imported crate.</li>
 </ul>
 <a class="header" href="#caveats" id="caveats"><h3>Caveats</h3></a>
