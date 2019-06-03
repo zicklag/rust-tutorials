@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Overview - Rust Tutorials</title>
+        <title>Appendix A: Rust Library Types - Rust Tutorials</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -72,7 +72,7 @@
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-            <ol class="chapter"><li class="affix"><a href="overview.html" class="active">Overview</a></li><li><a href="rust-plugins.html"><strong aria-hidden="true">1.</strong> Rust Plugins</a></li><li class="affix"><a href="appendix-a.html">Appendix A: Rust Library Types</a></li></ol>
+            <ol class="chapter"><li class="affix"><a href="overview.html">Overview</a></li><li><a href="rust-plugins.html"><strong aria-hidden="true">1.</strong> Rust Plugins</a></li><li class="affix"><a href="appendix-a.html" class="active">Appendix A: Rust Library Types</a></li></ol>
         </nav>
 
         <div id="page-wrapper" class="page-wrapper">
@@ -136,23 +136,64 @@
 
                 <div id="content" class="content">
                     <main>
-                        <a class="header" href="#rust-tutorials" id="rust-tutorials"><h1>Rust Tutorials</h1></a>
-<p>These are some miscellaneous <a href="http://rust-lang.org/">Rust</a> tutorials put together as I learn them. Hopefully they can help other people who might want to do the same things.</p>
-<p>All of the sources for the projects are on GitHub: <a href="https://github.com/zicklag/rust-tutorials">zicklag/rust-tutorials</a>.</p>
+                        <a class="header" href="#appendix-a-rust-library-types" id="appendix-a-rust-library-types"><h1>Appendix A: Rust Library Types</h1></a>
+<a class="header" href="#library-types-evaluation" id="library-types-evaluation"><h2>Library Types Evaluation</h2></a>
+<p>Here is my current understanding of different Rust library types.</p>
+<a class="header" href="#rlib" id="rlib"><h3>Rlib</h3></a>
+<p><code>rlib</code>'s are Rust static libraries. They contain all of the metadata and code necessary to build a Rust crate and link it into another Rust crate statically. Given just the <code>rlib</code> for a crate, you can include that crate into a Rust program by using <code>extern crate crate_name</code>. Even if you are dynamically linking a crate like a <code>.dll</code>, <code>.so</code>, etc., you will still need to have the <code>rlib</code> to include that crate into another crate because they shared library is missing some of the required metadata ( I think ).</p>
+<a class="header" href="#cdylib" id="cdylib"><h3>Cdylib</h3></a>
+<p><code>cdylib</code>'s are primarily designed for building shared libraries that can be linked into C/C++ programs.</p>
 <ul>
-<li><a href="./rust-plugins.html">Rust Plugins</a> - Learn how to setup dynamically loadable plugins for your Rust app</li>
+<li>They have a minimum size of ~2.2M on Linux, so the smallest <code>cdylib</code> is larger than the smallest <code>dylib</code>. I don't have any idea why the minimum size is so large.</li>
+<li>They are designed for building a C ABI that can be dynamically linked to C/C++ programs ( and Rust programs that define extern blocks )
+<ul>
+<li>If you want to expose any portion of the a <code>cdylib</code>'s interface over the C ABI you must use <strong>Extern Functions</strong>.</li>
+<li>If you want to link a Rust program to a Rust <code>cdylib</code> over the C ABI you have to use <strong>Extern Blocks</strong> ( See Rust reference doc ).</li>
 </ul>
+</li>
+<li>When building a <code>cdylib</code>, any functions that are <strong>not</strong> exposed through an extern block will be automatically stripped from the generated library as an optimization.
+<ul>
+<li>For example, if you build a <code>cdylib</code> for a large rust library and you do not export any functions using the extern keyword, the library will be essentially empty and will be about 2.2M ( because that is the minimum size for a <code>cdylib</code> ).</li>
+</ul>
+</li>
+</ul>
+<a class="header" href="#dylib" id="dylib"><h3>Dylib</h3></a>
+<p><code>dylib</code>'s are Rust shared libraries which have an unstable ABI that can change across Rust releases.</p>
+<ul>
+<li>To build a <code>dylib</code>, you probably need the <code>-C prefer-dynamic</code> rustflag set so that it will not attempt to statically link the standard library.</li>
+<li>Within the same Rust version, you can dynamically link to a Rust <code>dylib</code> from a Rust crate <strong>without</strong> having to use extern functions or blocks because it will go over the Rust ABI.</li>
+</ul>
+<a class="header" href="#proposal-for-creating-a-stable-rust-dynamic-linking-strategy" id="proposal-for-creating-a-stable-rust-dynamic-linking-strategy"><h2>Proposal for Creating a Stable Rust Dynamic Linking Strategy</h2></a>
+<blockquote>
+<p><strong>Note:</strong> This is just a draft for my thoughts about a way to make dynamic linking more stable and usable in Rust.</p>
+</blockquote>
+<p>The largest problem with dynamically linking Rust libraries, as far as I understand it, is that there is no stable ABI for Rust right now and, according to some, there may never be. Still dynamic linking is very useful in my use-case of creating a Rust plugin system, where plugins have access to the applications full Rust interface.</p>
+<blockquote>
+<p>My proposal is to provide a way to tell the Rust compiler to automatically expose all public Rust interfaces in a crate over the C ABI and also provide a way to import the external crate over the C ABI.</p>
+</blockquote>
+<p>The problem with using <code>dylib</code> for creating Rust dynamic libraries is that you cannot link to them from Rust crates that are not built using the <strong>exact</strong> same version of the Rust compiler. The problem with using <code>cdylib</code> is that it only exposes the items that are explicitly exposed using the <code>extern</code> keyword. While this makes sense for building C/C++ interfaces, it does not make sense for trying to link a full Rust library to another rust library as that would require you to manually create extern functions and blocks for the entire Rust interface you want to link to.</p>
+<p>If there was a way to build a Rust library with a C ABI and import it over that ABI, the library could be compatible with different rust versions without having to stabilize Rust's own ABI. I'm imagining that this would have something like the following changes:</p>
+<ul>
+<li>There is now a new <code>rcdylib</code> ( Rust C Dylib ) crate type that will cause Rust to build a shared library that exposes all of the Rust functions over the C ABI.</li>
+<li>There is now a new way to import external crates: <code>extern &quot;C&quot; crate crate_name;</code> Including a crate into another crate like this will cause it to use the C ABI to call any functions on that imported crate.</li>
+</ul>
+<a class="header" href="#caveats" id="caveats"><h3>Caveats</h3></a>
+<a class="header" href="#derive-macros" id="derive-macros"><h4>Derive Macros</h4></a>
+<p>In order to facilitate dynamically linking to Rust libraries that provide derive macros, it might be required that derive plugins be compiled as <code>rcdylib</code>'s as well. Otherwise, if you are attempting to compile Rust crate A and dynamically link it to Rust crate B, and the version of Rust you are using to compile crate A is different than crate B, the rustc binary compiling crate A will not be able to successfully link to the derive macro shared libraries that were built using crate B's version of Rust.</p>
+<a class="header" href="#disclaimer" id="disclaimer"><h3>Disclaimer</h3></a>
+<p>I don't fully understand the way that Rust libraries are linked and I don't have any in-depth knowledge of the compiler. This proposal is made based on the best of the knowledge that I could obtain right now. I would like to get feedback on whether or not what I'm saying makes any sense, and whether or not this could be feasible to work into Rust.</p>
+<p>If there is another way to achieve what I am trying to achieve, then I would be happy to go with an alternative that doesn't require changing the Rust compiler.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                         
-
-                        
-                            <a rel="next" href="rust-plugins.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
+                            <a rel="prev" href="rust-plugins.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
                             </a>
+                        
+
                         
 
                         <div style="clear: both"></div>
@@ -162,11 +203,11 @@
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                 
-
-                
-                    <a href="rust-plugins.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
+                    <a href="rust-plugins.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
                     </a>
+                
+
                 
             </nav>
 
