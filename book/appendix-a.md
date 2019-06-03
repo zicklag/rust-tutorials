@@ -28,6 +28,8 @@ Here is my current understanding of different Rust library types.
 
 ## Proposal for Creating a Stable Rust Dynamic Linking Strategy
 
+> **Note:** This is just a draft for my thoughts about a way to make dynamic linking more stable and usable in Rust.
+
 The largest problem with dynamically linking Rust libraries, as far as I understand it, is that there is no stable ABI for Rust right now and, according to some, there may never be. Still dynamic linking is very useful in my use-case of creating a Rust plugin system, where plugins have access to the applications full Rust interface.
 
 > My proposal is to provide a way to tell the Rust compiler to automatically expose all public Rust interfaces in a crate over the C ABI and also provide a way to import the external crate over the C ABI.
