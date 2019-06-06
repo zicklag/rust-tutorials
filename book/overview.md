@@ -4,4 +4,4 @@ These are some miscellaneous [Rust](http://rust-lang.org/) tutorials put togethe
 
 All of the sources for the projects are on GitHub: [zicklag/rust-tutorials](https://github.com/zicklag/rust-tutorials).
 
-- [Rust Plugins](./rust-plugins.md) - Learn how to setup dynamically loadable plugins for your Rust app
+- [Rust Plugins](./rust-plugins.md) - Learn how to setup dynamically loadable plugins for your Rust app. **Deprecated**

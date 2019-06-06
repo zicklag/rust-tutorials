@@ -2,6 +2,10 @@
 
 This is a guide for setting your Rust application up with Rust plugins that can be loaded dynamically at runtime. Additionally, this plugin setup allows plugins to make calls to the application's public API so that it can make use of the same data structures and utilities for extending the application.
 
+> **Warning:** After furthur testing, I cannot confirm that this plugin setup will work for all applications that have other crates as dependencies. It seems to work fine with the steps outlined in this tutorial, but I was not able to get it to work with a large project like [Amethyst](https://github.com/amethyst/amethyst).
+>
+> Additionally, this will only allow you to create plugins using the same version of Rust that the application was built with. Unfortunately, these issues defeated my use-case, but the tutorial may still be useful for one reason or another so I leave it here for reference.
+
 This is a quick, somewhat unpolished tutorial that I figured I would make as I explored the subject for the first time myself.
 
 The specific purpose for the plugins, in my case, is to allow for a Rust game to be extended/modded by writing Rust. I want the plugins to have full access to the game's API so that plugins are just about as powerful as making changes to the game core, without you having to manually create bindings to get access to engine internals.
