@@ -5,6 +5,8 @@ This is a guide for setting your Rust application up with Rust plugins that can 
 > **Warning:** After further testing, I cannot confirm that this plugin setup will work for all applications that have other crates as dependencies. It seems to work fine with the steps outlined in this tutorial, but I was not able to get it to work with a large project like [Amethyst](https://github.com/amethyst/amethyst).
 >
 > Additionally, this will only allow you to create plugins using the same version of Rust that the application was built with. Unfortunately, these issues defeated my use-case, but the tutorial may still be useful for one reason or another so I leave it here for reference.
+>
+> If you are wanting to attempt something similar, I recommend looking at the [ABI Stable Crates](https://github.com/rodrimati1992/abi_stable_crates) project.
 
 This is a quick, somewhat unpolished tutorial that I figured I would make as I explored the subject for the first time myself.
 
