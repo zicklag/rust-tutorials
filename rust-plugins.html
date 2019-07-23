@@ -4,6 +4,8 @@
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
         <title>Rust Plugins - Rust Tutorials</title>
+        
+
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -32,7 +34,10 @@
     </head>
     <body class="light">
         <!-- Provide site root to javascript -->
-        <script type="text/javascript">var path_to_root = "";</script>
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = "light";
+        </script>
 
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script type="text/javascript">
@@ -53,8 +58,8 @@
         <!-- Set the theme before any content is loaded, prevents flash -->
         <script type="text/javascript">
             var theme;
-            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { } 
-            if (theme === null || theme === undefined) { theme = 'light'; }
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
             document.body.className = theme;
             document.querySelector('html').className = theme + ' js';
         </script>
@@ -72,7 +77,10 @@
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-            <ol class="chapter"><li class="affix"><a href="overview.html">Overview</a></li><li><a href="rust-plugins.html" class="active"><strong aria-hidden="true">1.</strong> Rust Plugins</a></li><li class="affix"><a href="appendix-a.html">Appendix A: Rust Library Types</a></li></ol>
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="affix"><a href="overview.html">Overview</a></li><li><a href="rust-plugins.html" class="active"><strong aria-hidden="true">1.</strong> Rust Plugins</a></li><li class="affix"><a href="appendix-a.html">Appendix A: Rust Library Types</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
         <div id="page-wrapper" class="page-wrapper">
@@ -89,7 +97,7 @@
                                 <i class="fa fa-paint-brush"></i>
                             </button>
                             <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                                <li role="none"><button role="menuitem" class="theme" id="light">Light <span class="default">(default)</span></button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
                                 <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
                                 <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
                                 <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
@@ -102,12 +110,13 @@
                             
                         </div>
 
-                        <h1 class="menu-title">Rust Tutorials</h1> 
+                        <h1 class="menu-title">Rust Tutorials</h1>
 
                         <div class="right-buttons">
                             <a href="print.html" title="Print this book" aria-label="Print this book">
                                 <i id="print-button" class="fa fa-print"></i>
                             </a>
+                            
                         </div>
                     </div>
                 </div>
@@ -136,11 +145,12 @@
 
                 <div id="content" class="content">
                     <main>
-                        <a class="header" href="#rust-plugins" id="rust-plugins"><h1>Rust Plugins</h1></a>
+                        <h1><a class="header" href="#rust-plugins" id="rust-plugins">Rust Plugins</a></h1>
 <p>This is a guide for setting your Rust application up with Rust plugins that can be loaded dynamically at runtime. Additionally, this plugin setup allows plugins to make calls to the application's public API so that it can make use of the same data structures and utilities for extending the application.</p>
 <blockquote>
 <p><strong>Warning:</strong> After further testing, I cannot confirm that this plugin setup will work for all applications that have other crates as dependencies. It seems to work fine with the steps outlined in this tutorial, but I was not able to get it to work with a large project like <a href="https://github.com/amethyst/amethyst">Amethyst</a>.</p>
 <p>Additionally, this will only allow you to create plugins using the same version of Rust that the application was built with. Unfortunately, these issues defeated my use-case, but the tutorial may still be useful for one reason or another so I leave it here for reference.</p>
+<p>If you are wanting to attempt something similar, I recommend looking at the <a href="https://github.com/rodrimati1992/abi_stable_crates">ABI Stable Crates</a> project.</p>
 </blockquote>
 <p>This is a quick, somewhat unpolished tutorial that I figured I would make as I explored the subject for the first time myself.</p>
 <p>The specific purpose for the plugins, in my case, is to allow for a Rust game to be extended/modded by writing Rust. I want the plugins to have full access to the game's API so that plugins are just about as powerful as making changes to the game core, without you having to manually create bindings to get access to engine internals.</p>
@@ -148,7 +158,7 @@
 <blockquote>
 <p><strong>Note:</strong> This guide assumes that you are on Linux, and has not been tested on Windows, or Mac, but, conceptually, everything should work the same except for the extensions for shared libraries being different on the different platforms ( .so on Linux, .dll on Windows, .dylib on Mac ).</p>
 </blockquote>
-<a class="header" href="#create-the-app" id="create-the-app"><h2>Create The App</h2></a>
+<h2><a class="header" href="#create-the-app" id="create-the-app">Create The App</a></h2>
 <p>The first thing we need is a place to put our crates, like a <code>rust-plugins</code> folder. It is here that we will put our app crate and our plugin crate.</p>
 <p>Now lets create the app directory inside the one we created for our project:</p>
 <pre><code class="language-bash">cargo new --bin app
@@ -208,7 +218,7 @@ Starting App
 </code></pre>
 <p>Now that our app can find the libraries it needs, it runs successfully! Also, the <code>libstd</code> file explains where the rest of the file size went when we switched to dynamic linking. The <code>libstd</code> library is 5M, which is larger than our executable was when it was statically linked, but that is probably because, when statically linking, rust can remove portions of the library that is not used, but when dynamically linking, you never know what portions of the library an app might use, so you have to make sure that it is all there all of the time.</p>
 <p>Dynamic linking can be less convenient for distribution because you need more files with your app but it allows multiple applications to share the same libraries, which can save on disc space if there are many binaries or plugins that are using the same library. This helps us for our plugins use-case because all of the plugins will share the same app library and standard library.</p>
-<a class="header" href="#create-an-app-library-function" id="create-an-app-library-function"><h3>Create an App Library Function</h3></a>
+<h3><a class="header" href="#create-an-app-library-function" id="create-an-app-library-function">Create an App Library Function</a></h3>
 <p>Before we move on to creating our plugin, lets create a function that our plugin can call and put it in our app library:</p>
 <p><strong>src/lib.rs:</strong></p>
 <pre><pre class="playpen"><code class="language-rust">
@@ -219,7 +229,7 @@ pub fn test_app_func(message: &amp;str) {
 }
 #}</code></pre></pre>
 <p>Testing that our plugin can call this function in our app's library will prove that our plugin can, in fact, make use of our app's public rust API.</p>
-<a class="header" href="#create-a-plugin" id="create-a-plugin"><h2>Create a Plugin</h2></a>
+<h2><a class="header" href="#create-a-plugin" id="create-a-plugin">Create a Plugin</a></h2>
 <p>The next thing we are going to do is create our plugin crate. Go ahead and cd back to your project folder and create the plugin crate alongside the app crate and the move to the plugin dir.</p>
 <pre><code class="language-bash">cargo new --lib plugin1
 cd plugin1
@@ -269,7 +279,7 @@ pub fn run() {
 </blockquote>
 <p>When we run <code>cargo build</code>, cargo will first run our <code>build.rs</code> script and read the standard output of that script to look for cargo directives. In this case, our script tells cargo to look in the debug build dir of our app for libraries and to link to the <code>app</code> library. When compiling our rust library, the compiler will read our app's <code>libapp.rlib</code> which contains all of the metadata needed to compile rust code that talks to that library, similar to C/C++ header files. After the rust code is compiled, it will call the system linker to link our plugin library, <code>libplugin1.so</code>, to <code>libapp.so</code> so that it can call functions defined in our app library.</p>
 <p>Now that we have an app and a plugin, we need to make our app load the plugin!</p>
-<a class="header" href="#loading-a-plugin" id="loading-a-plugin"><h2>Loading a Plugin</h2></a>
+<h2><a class="header" href="#loading-a-plugin" id="loading-a-plugin">Loading a Plugin</a></h2>
 <p>Now we are ready to actually do some awesome stuff, loading the plugin into our app. To load the plugin we are going to use the <a href="https://crates.io/crates/dlopen"><code>dlopen</code></a> crate. The <code>dlopen</code> crate will do the actual loading of the shared libraries and takes care of the lower level stuff so we don't have to. Our first step, then, is to add that crate to the <code>Cargo.toml</code> for our app.</p>
 <pre><code class="language-toml">[dependencies]
 dlopen = &quot;0.1.6&quot;
@@ -321,10 +331,10 @@ Running plugin1
 test_app_func(&quot;Hello from plugin 1&quot;)
 </code></pre>
 <p>Notice that Rust bundled the new dependencies of our app, such as the <code>dlopen</code> crate, into our <code>libapp.so</code>; it is now 534 kilobytes instead of the original 14 kilobytes. Apparently, even though it dynamically links <code>libstd</code>, it decided to statically link the <code>dlopen</code> crate to <code>libapp</code>. This is fine and is nice because we don't need to have a shared library for <em>every</em> crate dependency. If we wanted to expose one of the crates that our app depends on to our plugins, we could do that simply by re-exporting the library in our app library ( this is yet to be tested ).</p>
-<a class="header" href="#notes-so-far" id="notes-so-far"><h2>Notes So Far</h2></a>
+<h2><a class="header" href="#notes-so-far" id="notes-so-far">Notes So Far</a></h2>
 <p>In this example, we added the path to our app library to our plugin's build script so that we could compile the plugin with a link to our app. In a more organized situation, as the designer of the app, you would probably provide the shared libraries and the rlibs that are required to link to the app for your users, so that they could build their plugins against those, without having to have the source code and compile the app themselves.</p>
 <p>What we are going to focus on next is making our plugin API more powerful so that the app has a way to find out more about the plugin, instead of just having a <code>run</code> function.</p>
-<a class="header" href="#improving-the-plugin-api--and-our-app-" id="improving-the-plugin-api--and-our-app-"><h2>Improving the Plugin API ( And Our App )</h2></a>
+<h2><a class="header" href="#improving-the-plugin-api--and-our-app-" id="improving-the-plugin-api--and-our-app-">Improving the Plugin API ( And Our App )</a></h2>
 <p>Now that we have basics of plugin loading, lets make our app do something. We're going to setup a simple app that will infinitely prompt for a command, and respond to the user's input. The only command that comes with the app will be the <code>exit</code> command that lets the user exit the program. Otherwise, all other commands will be provided by plugins.</p>
 <p>Let's get that loop going without plugins first:</p>
 <p><strong>src/lib.rs:</strong></p>
@@ -462,7 +472,7 @@ exit
 </code></pre>
 <p>We used our plugin to provide custom commands to our command prompt!</p>
 <p>This is as far as this tutorial will take you and there is obviously a lot that could be improved. For one, you probably don't want to be loading plugins by name and you are going to want to be able to have more than one. All of that is simple to implement on top of the base that we have worked on here and I leave it up to the reader to explore how to do that if they so desire.</p>
-<a class="header" href="#closing-thoughts" id="closing-thoughts"><h2>Closing Thoughts</h2></a>
+<h2><a class="header" href="#closing-thoughts" id="closing-thoughts">Closing Thoughts</a></h2>
 <p>This is actually the first time that I have done any of this, so I'm still getting to understand how everything fits together, but hopefully this presents a good picture of how you can setup plugins in Rust.</p>
 <p>Many thanks to @Michael-F-Bryan for the plugin section of his <a href="https://michael-f-bryan.github.io/rust-ffi-guide/">Rust FFI Guide</a>. I wouldn't have figure out how to do this without that. I may have missed something or given incorrect instructions somewhere in the tutorial so open an issue if you have any problems with it. :smiley:</p>
 
